@@ -80,7 +80,6 @@
   <string name="send_otr_message">Poslať OTR šifrovanú správu</string>
   <string name="send_pgp_message">Poslať OpenPGP šifrovanú správu</string>
   <string name="your_nick_has_been_changed">Prezývka sa zmenila</string>
-  <string name="download_image">Stiahnuť obrázok</string>
   <string name="send_unencrypted">Poslať nešifrované</string>
   <string name="decryption_failed">Zašifrovanie zlyhalo. Možno nemáte správny privátny kľúč.</string>
   <string name="openkeychain_required">OpenKeychain</string>
@@ -110,7 +109,7 @@
   <string name="pref_conference_notifications_summary">Vždy upozorniť pri novej konferenčnej správe, nie len ak je zvýraznená</string>
   <string name="pref_notification_grace_period">Doba na prečítanie upozornenia</string>
   <string name="pref_notification_grace_period_summary">Neupozorňovať krátko po obdržaní kópie správy</string>
-  <string name="pref_advanced_options">Pokročilé nastavenia</string>
+  <string name="pref_advanced_options">Rozšírené možnosti</string>
   <string name="pref_never_send_crash">Neodosielať detaily o zlyhaní aplikácie</string>
   <string name="pref_never_send_crash_summary">Zaslaním detailov o dôvode zlyhania pomáhate ďalšiemu vývoju aplikácie Conversations</string>
   <string name="pref_confirm_messages">Potvrdzovať správy</string>
@@ -266,7 +265,7 @@
   <string name="pref_force_encryption_summary">Vždy zasielať šifrované správy (okrem skupinových konverzácií)</string>
   <string name="pref_dont_save_encrypted">Neukladať šifrované správy</string>
   <string name="pref_dont_save_encrypted_summary">Varovanie: Toto môže viesť k strate správ</string>
-  <string name="pref_expert_options">Expertné nastavenia</string>
+  <string name="pref_expert_options">Expertné možnosti</string>
   <string name="pref_expert_options_summary">S týmto narábajte veľmi opatrne, prosím</string>
   <string name="title_activity_about">O Conversations</string>
   <string name="pref_about_conversations_summary">Informácie o tvorbe a licencii</string>
@@ -289,15 +288,13 @@
   <string name="conference_members_only">Táto konverzácia je iba pre členov</string>
   <string name="conference_kicked">Vyčlenili vás z tejto konverzácie</string>
   <string name="using_account">Používa sa účet %s</string>
-  <string name="checking_image">Overuje sa obrázok na serveri HTTP</string>
-  <string name="image_file_deleted">Súbor s obrázkom bol vymazaný</string>
   <string name="not_connected_try_again">Nie ste pripojený. Skúste to neskôr</string>
-  <string name="check_image_filesize">Overiť veľkosť obrázku</string>
+  <string name="check_x_filesize">Overiť %s veľkosť</string>
   <string name="message_options">Možnosti správy</string>
   <string name="copy_text">Skopírovať text</string>
   <string name="copy_original_url">Skopírovať originálny URL</string>
   <string name="send_again">Poslať znova</string>
-  <string name="image_url">Obrázok URL</string>
+  <string name="file_url">URL súbor</string>
   <string name="message_text">Textová správa</string>
   <string name="url_copied_to_clipboard">URL skopírovaný do schránky</string>
   <string name="message_copied_to_clipboard">Správa skopírovaná do schránky</string>
@@ -359,7 +356,7 @@
   <string name="could_not_change_password">Nepodarilo sa zmeniť heslo</string>
   <string name="otr_session_not_started">Poslať správu pre spustenie šifrovaného chatu</string>
   <string name="ask_question">Položiť otázku</string>
-  <string name="smp_explain_question">Ak máte vy a váš kontakt spoločné tajomstvo, ktoré nikto iný nepozná (napríklad spoločný vtip alebo čo ste mali na obed na vašom poslednom stretnutí), môžete ho použiť na overenie vzájomných identifikátorov.\n\nZadáte pomôcku alebo otázku a kontakt na ňu správne odpovie. </string>
+  <string name="smp_explain_question">Ak máte vy a váš kontakt spoločné tajomstvo, ktoré nikto iný nepozná (napríklad nejaký spoločný vtip alebo len čo ste mali na obed, keď ste sa naposledy stretli), môžte použiť toto tajomstvo na overenie vzájomných identifikátorov. \n\nZadáte pomôcku alebo otázku pre váš kontakt, ktorý na ňu správne odpovie. </string>
   <string name="smp_explain_answer">Váš kontakt by chcel overiť váš identifikátor pomocou spoločného tajomstva. Váš kontakt zadal nasledujúcu pomôcku alebo otázku týkajúcu sa tajomstva. </string>
   <string name="shared_secret_hint_should_not_be_empty">Vaša pomôcka by nemala byť prázdna</string>
   <string name="shared_secret_can_not_be_empty">Vaše spoločné tajomstvo nemôže byť prázdne</string>
@@ -375,7 +372,7 @@
   <string name="no_role">Bez úlohy</string>
   <string name="outcast">Vylúčený</string>
   <string name="member">Člen</string>
-  <string name="advanced_mode">Pokročilý režim</string>
+  <string name="advanced_mode">Rozšírený režim</string>
   <string name="grant_membership">Povoliť členstvo</string>
   <string name="remove_membership">Odobrať členstvo</string>
   <string name="grant_admin_privileges">Povoliť administrátorské výsady</string>
@@ -422,4 +419,36 @@
   <string name="contact_has_stopped_typing">%s prestal písať</string>
   <string name="pref_chat_states">Upozornenia pri písaní</string>
   <string name="pref_chat_states_summary">Upozorniť kontakt, keď píšete novú správu</string>
+  <string name="send_location">Poslať polohu</string>
+  <string name="show_location">Zobraziť polohu</string>
+  <string name="no_application_found_to_display_location">Nenašla sa aplikácia na zobrazenie polohy</string>
+  <string name="location">Poloha</string>
+  <string name="received_location">Prijatá poloha</string>
+  <string name="title_undo_swipe_out_conversation">Konverzácia zatvorená</string>
+  <string name="title_undo_swipe_out_muc">Opustil skupinovú konverzáciu</string>
+  <string name="pref_certificate_options">Možnosti certifikátu</string>
+  <string name="pref_dont_trust_system_cas_title">Nedôverovať systému CAs</string>
+  <string name="pref_dont_trust_system_cas_summary">Všetky certifikáty musia byť ručne schválené</string>
+  <string name="pref_remove_trusted_certificates_title">Odstrániť certifikáty</string>
+  <string name="pref_remove_trusted_certificates_summary">Vymazať ručne schválené certifikáty</string>
+  <string name="toast_no_trusted_certs">Žiadne ručne schválené certifikáty</string>
+  <string name="dialog_manage_certs_title">Odstrániť certifikáty</string>
+  <string name="dialog_manage_certs_positivebutton">Vymazať výber</string>
+  <string name="dialog_manage_certs_negativebutton">Zrušiť</string>
+  <plurals name="toast_delete_certificates">
+    <item quantity="one">%d certifikátu vymazaných</item>
+    <item quantity="few">%d certifikátu vymazaných</item>
+    <item quantity="other">%d certifikátov vymazaných</item>
+  </plurals>
+  <plurals name="select_contact">
+    <item quantity="one">Vybrať %d kontaktu</item>
+    <item quantity="few">Vybrať %d kontaktu</item>
+    <item quantity="other">Vybrať %d kontaktov</item>
+  </plurals>
+  <string name="pref_quick_action_summary">Nahradiť tlačidlo poslať rýchlou akciou</string>
+  <string name="pref_quick_action">Rýchla akcia</string>
+  <string name="none">Žiadny</string>
+  <string name="recently_used">Naposledy použitý</string>
+  <string name="choose_quick_action">Vybrať rýchlu voľbu</string>
+  <string name="file_not_found_on_remote_host">Súbor sa na vzdialenom serveri nenašiel</string>
 </resources>

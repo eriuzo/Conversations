@@ -2,10 +2,8 @@ package eu.siacs.conversations.entities;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.os.SystemClock;
 
 import net.java.otr4j.OtrException;
-import net.java.otr4j.crypto.OtrCryptoEngineImpl;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.session.SessionID;
 import net.java.otr4j.session.SessionImpl;
@@ -18,6 +16,7 @@ import java.security.interfaces.DSAPublicKey;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
 import eu.siacs.conversations.Config;
@@ -80,6 +79,7 @@ public class Conversation extends AbstractEntity implements Blockable {
 	private boolean messagesLeftOnServer = true;
 	private ChatState mOutgoingChatState = Config.DEFAULT_CHATSTATE;
 	private ChatState mIncomingChatState = Config.DEFAULT_CHATSTATE;
+	private String mLastReceivedOtrMessageId = null;
 
 	public boolean hasMessagesLeftOnServer() {
 		return messagesLeftOnServer;
@@ -179,13 +179,13 @@ public class Conversation extends AbstractEntity implements Blockable {
 		}
 	}
 
-	public void findUnsentMessagesWithOtrEncryption(OnMessageFound onMessageFound) {
+	public void findUnsentMessagesWithEncryption(int encryptionType, OnMessageFound onMessageFound) {
 		synchronized (this.messages) {
 			for (Message message : this.messages) {
 				if ((message.getStatus() == Message.STATUS_UNSEND || message.getStatus() == Message.STATUS_WAITING)
-						&& (message.getEncryption() == Message.ENCRYPTION_OTR)) {
+						&& (message.getEncryption() == encryptionType)) {
 					onMessageFound.onMessageFound(message);
-						}
+				}
 			}
 		}
 	}
@@ -219,6 +219,11 @@ public class Conversation extends AbstractEntity implements Blockable {
 			messages.clear();
 			messages.addAll(this.messages);
 		}
+		for(Iterator<Message> iterator = messages.iterator(); iterator.hasNext();) {
+			if (iterator.next().wasMergedIntoPrevious()) {
+				iterator.remove();
+			}
+		}
 	}
 
 	@Override
@@ -234,6 +239,20 @@ public class Conversation extends AbstractEntity implements Blockable {
 	@Override
 	public Jid getBlockedJid() {
 		return getContact().getBlockedJid();
+	}
+
+	public String getLastReceivedOtrMessageId() {
+		return this.mLastReceivedOtrMessageId;
+	}
+
+	public void setLastReceivedOtrMessageId(String id) {
+		this.mLastReceivedOtrMessageId = id;
+	}
+
+	public int countMessages() {
+		synchronized (this.messages) {
+			return this.messages.size();
+		}
 	}
 
 
@@ -371,7 +390,7 @@ public class Conversation extends AbstractEntity implements Blockable {
 	public static Conversation fromCursor(Cursor cursor) {
 		Jid jid;
 		try {
-			jid = Jid.fromString(cursor.getString(cursor.getColumnIndex(CONTACTJID)));
+			jid = Jid.fromString(cursor.getString(cursor.getColumnIndex(CONTACTJID)), true);
 		} catch (final InvalidJidException e) {
 			// Borked DB..
 			jid = null;
@@ -406,7 +425,7 @@ public class Conversation extends AbstractEntity implements Blockable {
 			final SessionID sessionId = new SessionID(this.getJid().toBareJid().toString(),
 					presence,
 					"xmpp");
-			this.otrSession = new SessionImpl(sessionId, getAccount().getOtrEngine());
+			this.otrSession = new SessionImpl(sessionId, getAccount().getOtrService());
 			try {
 				if (sendStart) {
 					this.otrSession.startSession();
@@ -478,7 +497,7 @@ public class Conversation extends AbstractEntity implements Blockable {
 					return null;
 				}
 				DSAPublicKey remotePubKey = (DSAPublicKey) getOtrSession().getRemotePublicKey();
-				this.otrFingerprint = getAccount().getOtrEngine().getFingerprint(remotePubKey);
+				this.otrFingerprint = getAccount().getOtrService().getFingerprint(remotePubKey);
 			} catch (final OtrCryptoException | UnsupportedOperationException ignored) {
 				return null;
 			}
@@ -498,6 +517,13 @@ public class Conversation extends AbstractEntity implements Blockable {
 
 	public boolean isOtrFingerprintVerified() {
 		return getContact().getOtrFingerprints().contains(getOtrFingerprint());
+	}
+
+	/**
+	 * short for is Private and Non-anonymous
+	 */
+	public boolean isPnNA() {
+		return mode == MODE_SINGLE || (getMucOptions().membersOnly() && getMucOptions().nonanonymous());
 	}
 
 	public synchronized MucOptions getMucOptions() {

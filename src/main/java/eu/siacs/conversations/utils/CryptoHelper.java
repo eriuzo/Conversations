@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 
@@ -90,11 +91,15 @@ public final class CryptoHelper {
 	}
 
 	public static String prettifyFingerprint(String fingerprint) {
-		StringBuilder builder = new StringBuilder(fingerprint);
-		builder.insert(8, " ");
-		builder.insert(17, " ");
-		builder.insert(26, " ");
-		builder.insert(35, " ");
+		if (fingerprint==null) {
+			return "";
+		} else if (fingerprint.length() < 40) {
+			return fingerprint;
+		}
+		StringBuilder builder = new StringBuilder(fingerprint.replaceAll("\\s",""));
+		for(int i=8;i<builder.length();i+=9) {
+			builder.insert(i, ' ');
+		}
 		return builder.toString();
 	}
 
@@ -103,6 +108,21 @@ public final class CryptoHelper {
 		final List<String> platformCiphers = Arrays.asList(platformSupportedCipherSuites);
 		cipherSuites.retainAll(platformCiphers);
 		cipherSuites.addAll(platformCiphers);
+		filterWeakCipherSuites(cipherSuites);
 		return cipherSuites.toArray(new String[cipherSuites.size()]);
+	}
+
+	private static void filterWeakCipherSuites(final Collection<String> cipherSuites) {
+		final Iterator<String> it = cipherSuites.iterator();
+		while (it.hasNext()) {
+			String cipherName = it.next();
+			// remove all ciphers with no or very weak encryption or no authentication
+			for (String weakCipherPattern : Config.WEAK_CIPHER_PATTERNS) {
+				if (cipherName.contains(weakCipherPattern)) {
+					it.remove();
+					break;
+				}
+			}
+		}
 	}
 }

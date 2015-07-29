@@ -1,12 +1,13 @@
 package eu.siacs.conversations.entities;
 
+import android.util.Log;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URLConnection;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -20,7 +21,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import eu.siacs.conversations.Config;
-import android.util.Log;
+import eu.siacs.conversations.utils.MimeUtils;
 
 public class DownloadableFile extends File {
 
@@ -56,16 +57,11 @@ public class DownloadableFile extends File {
 
 	public String getMimeType() {
 		String path = this.getAbsolutePath();
-		try {
-			String mime = URLConnection.guessContentTypeFromName(path.replace("#",""));
-			if (mime != null) {
-				return mime;
-			} else if (mime == null && path.endsWith(".webp")) {
-				return "image/webp";
-			} else {
-				return "";
-			}
-		} catch (final StringIndexOutOfBoundsException e) {
+		int start = path.lastIndexOf('.') + 1;
+		if (start < path.length()) {
+			String mime = MimeUtils.guessMimeTypeFromExtension(path.substring(start));
+			return mime == null ? "" : mime;
+		} else {
 			return "";
 		}
 	}

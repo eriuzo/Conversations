@@ -116,7 +116,9 @@ public class PublishProfilePictureActivity extends XmppActivity {
 				if (mInitialAccountSetup) {
 					Intent intent = new Intent(getApplicationContext(),
 							StartConversationActivity.class);
-					intent.putExtra("init",true);
+					if (xmppConnectionService != null && xmppConnectionService.getAccounts().size() == 1) {
+						intent.putExtra("init", true);
+					}
 					startActivity(intent);
 				}
 				finish();
@@ -163,8 +165,7 @@ public class PublishProfilePictureActivity extends XmppActivity {
             if (jid != null) {
 				this.account = xmppConnectionService.findAccountByJid(jid);
 				if (this.account.getXmppConnection() != null) {
-					this.support = this.account.getXmppConnection()
-							.getFeatures().pubsub();
+					this.support = this.account.getXmppConnection().getFeatures().pep();
 				}
 				if (this.avatarUri == null) {
 					if (this.account.getAvatar() != null
@@ -248,6 +249,10 @@ public class PublishProfilePictureActivity extends XmppActivity {
 	protected void disablePublishButton() {
 		this.publishButton.setEnabled(false);
 		this.publishButton.setTextColor(getSecondaryTextColor());
+	}
+
+	public void refreshUiReal() {
+		//nothing to do. This Activity doesn't implement any listeners
 	}
 
 }

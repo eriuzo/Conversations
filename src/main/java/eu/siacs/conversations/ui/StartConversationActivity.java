@@ -42,6 +42,7 @@ import android.widget.Checkable;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
@@ -65,6 +66,7 @@ import eu.siacs.conversations.ui.adapter.KnownHostsAdapter;
 import eu.siacs.conversations.ui.adapter.ListItemAdapter;
 import eu.siacs.conversations.utils.XmppUri;
 import eu.siacs.conversations.xmpp.OnUpdateBlocklist;
+import eu.siacs.conversations.xmpp.XmppConnection;
 import eu.siacs.conversations.xmpp.jid.InvalidJidException;
 import eu.siacs.conversations.xmpp.jid.Jid;
 
@@ -262,9 +264,12 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
 
 	protected void openConversationForBookmark(int position) {
 		Bookmark bookmark = (Bookmark) conferences.get(position);
-		Conversation conversation = xmppConnectionService
-			.findOrCreateConversation(bookmark.getAccount(),
-					bookmark.getJid(), true);
+		Jid jid = bookmark.getJid();
+		if (jid == null) {
+			Toast.makeText(this,R.string.invalid_jid,Toast.LENGTH_SHORT).show();
+			return;
+		}
+		Conversation conversation = xmppConnectionService.findOrCreateConversation(bookmark.getAccount(),jid, true);
 		conversation.setBookmark(bookmark);
 		if (!conversation.getMucOptions().online()) {
 			xmppConnectionService.joinMuc(conversation);
@@ -757,14 +762,16 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
 			} else {
 				activity.contact_context_id = acmi.position;
 				final Blockable contact = (Contact) activity.contacts.get(acmi.position);
-
 				final MenuItem blockUnblockItem = menu.findItem(R.id.context_contact_block_unblock);
-				if (blockUnblockItem != null) {
+				XmppConnection xmpp = contact.getAccount().getXmppConnection();
+				if (xmpp != null && xmpp.getFeatures().blocking()) {
 					if (contact.isBlocked()) {
 						blockUnblockItem.setTitle(R.string.unblock_contact);
 					} else {
 						blockUnblockItem.setTitle(R.string.block_contact);
 					}
+				} else {
+					blockUnblockItem.setVisible(false);
 				}
 			}
 		}
