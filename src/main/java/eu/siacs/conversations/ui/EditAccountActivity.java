@@ -63,6 +63,7 @@ public class EditAccountActivity extends XmppActivity implements OnAccountUpdate
 	private TextView mSessionEst;
 	private TextView mOtrFingerprint;
 	private TextView mAxolotlFingerprint;
+	private TextView mAccountJidLabel;
 	private ImageView mAvatar;
 	private RelativeLayout mOtrFingerprintBox;
 	private RelativeLayout mAxolotlFingerprintBox;
@@ -74,6 +75,7 @@ public class EditAccountActivity extends XmppActivity implements OnAccountUpdate
 
 	private Jid jidToEdit;
 	private Account mAccount;
+	private String messageFingerprint;
 
 	private boolean mFetchingAvatar = false;
 
@@ -86,17 +88,34 @@ public class EditAccountActivity extends XmppActivity implements OnAccountUpdate
 				xmppConnectionService.updateAccount(mAccount);
 				return;
 			}
-			final boolean registerNewAccount = mRegisterNew.isChecked();
+			final boolean registerNewAccount = mRegisterNew.isChecked() && !Config.DISALLOW_REGISTRATION_IN_UI;
+			if (Config.DOMAIN_LOCK != null && mAccountJid.getText().toString().contains("@")) {
+				mAccountJid.setError(getString(R.string.invalid_username));
+				mAccountJid.requestFocus();
+				return;
+			}
 			final Jid jid;
 			try {
-				jid = Jid.fromString(mAccountJid.getText().toString());
+				if (Config.DOMAIN_LOCK != null) {
+					jid = Jid.fromParts(mAccountJid.getText().toString(),Config.DOMAIN_LOCK,null);
+				} else {
+					jid = Jid.fromString(mAccountJid.getText().toString());
+				}
 			} catch (final InvalidJidException e) {
-				mAccountJid.setError(getString(R.string.invalid_jid));
+				if (Config.DOMAIN_LOCK != null) {
+					mAccountJid.setError(getString(R.string.invalid_username));
+				} else {
+					mAccountJid.setError(getString(R.string.invalid_jid));
+				}
 				mAccountJid.requestFocus();
 				return;
 			}
 			if (jid.isDomainJid()) {
-				mAccountJid.setError(getString(R.string.invalid_jid));
+				if (Config.DOMAIN_LOCK != null) {
+					mAccountJid.setError(getString(R.string.invalid_username));
+				} else {
+					mAccountJid.setError(getString(R.string.invalid_jid));
+				}
 				mAccountJid.requestFocus();
 				return;
 			}
@@ -122,13 +141,9 @@ public class EditAccountActivity extends XmppActivity implements OnAccountUpdate
 				mAccount.setOption(Account.OPTION_REGISTER, registerNewAccount);
 				xmppConnectionService.updateAccount(mAccount);
 			} else {
-				try {
-					if (xmppConnectionService.findAccountByJid(Jid.fromString(mAccountJid.getText().toString())) != null) {
-						mAccountJid.setError(getString(R.string.account_already_exists));
-						mAccountJid.requestFocus();
-						return;
-					}
-				} catch (final InvalidJidException e) {
+				if (xmppConnectionService.findAccountByJid(jid) != null) {
+					mAccountJid.setError(getString(R.string.account_already_exists));
+					mAccountJid.requestFocus();
 					return;
 				}
 				mAccount = new Account(jid.toBareJid(), password);
@@ -284,10 +299,17 @@ public class EditAccountActivity extends XmppActivity implements OnAccountUpdate
 	}
 
 	protected boolean accountInfoEdited() {
-		return this.mAccount != null && (!this.mAccount.getJid().toBareJid().toString().equals(
-					this.mAccountJid.getText().toString())
-			|| !this.mAccount.getPassword().equals(
-						this.mPassword.getText().toString()));
+		if (this.mAccount == null) {
+			return false;
+		}
+		final String unmodified;
+		if (Config.DOMAIN_LOCK != null) {
+			unmodified = this.mAccount.getJid().getLocalpart();
+		} else {
+			unmodified = this.mAccount.getJid().toBareJid().toString();
+		}
+		return !unmodified.equals(this.mAccountJid.getText().toString()) ||
+				!this.mAccount.getPassword().equals(this.mPassword.getText().toString());
 	}
 
 	@Override
@@ -305,6 +327,11 @@ public class EditAccountActivity extends XmppActivity implements OnAccountUpdate
 		setContentView(R.layout.activity_edit_account);
 		this.mAccountJid = (AutoCompleteTextView) findViewById(R.id.account_jid);
 		this.mAccountJid.addTextChangedListener(this.mTextWatcher);
+		this.mAccountJidLabel = (TextView) findViewById(R.id.account_jid_label);
+		if (Config.DOMAIN_LOCK != null) {
+			this.mAccountJidLabel.setText(R.string.username);
+			this.mAccountJid.setHint(R.string.username_hint);
+		}
 		this.mPassword = (EditText) findViewById(R.id.account_password);
 		this.mPassword.addTextChangedListener(this.mTextWatcher);
 		this.mPasswordConfirm = (EditText) findViewById(R.id.account_password_confirm);
@@ -347,6 +374,9 @@ public class EditAccountActivity extends XmppActivity implements OnAccountUpdate
 			}
 		};
 		this.mRegisterNew.setOnCheckedChangeListener(OnCheckedShowConfirmPassword);
+		if (Config.DISALLOW_REGISTRATION_IN_UI) {
+			this.mRegisterNew.setVisibility(View.GONE);
+		}
 	}
 
 	@Override
@@ -388,6 +418,7 @@ public class EditAccountActivity extends XmppActivity implements OnAccountUpdate
 			} catch (final InvalidJidException | NullPointerException ignored) {
 				this.jidToEdit = null;
 			}
+			this.messageFingerprint = getIntent().getStringExtra("fingerprint");
 			if (this.jidToEdit != null) {
 				this.mRegisterNew.setVisibility(View.GONE);
 				if (getActionBar() != null) {
@@ -404,9 +435,6 @@ public class EditAccountActivity extends XmppActivity implements OnAccountUpdate
 
 	@Override
 	protected void onBackendConnected() {
-		final KnownHostsAdapter mKnownHostsAdapter = new KnownHostsAdapter(this,
-				android.R.layout.simple_list_item_1,
-				xmppConnectionService.getKnownHosts());
 		if (this.jidToEdit != null) {
 			this.mAccount = xmppConnectionService.findAccountByJid(jidToEdit);
 			updateAccountInformation(true);
@@ -419,7 +447,12 @@ public class EditAccountActivity extends XmppActivity implements OnAccountUpdate
 			this.mCancelButton.setEnabled(false);
 			this.mCancelButton.setTextColor(getSecondaryTextColor());
 		}
-		this.mAccountJid.setAdapter(mKnownHostsAdapter);
+		if (Config.DOMAIN_LOCK == null) {
+			final KnownHostsAdapter mKnownHostsAdapter = new KnownHostsAdapter(this,
+					android.R.layout.simple_list_item_1,
+					xmppConnectionService.getKnownHosts());
+			this.mAccountJid.setAdapter(mKnownHostsAdapter);
+		}
 		updateSaveButton();
 	}
 
@@ -449,7 +482,11 @@ public class EditAccountActivity extends XmppActivity implements OnAccountUpdate
 
 	private void updateAccountInformation(boolean init) {
 		if (init) {
-			this.mAccountJid.setText(this.mAccount.getJid().toBareJid().toString());
+			if (Config.DOMAIN_LOCK != null) {
+				this.mAccountJid.setText(this.mAccount.getJid().getLocalpart());
+			} else {
+				this.mAccountJid.setText(this.mAccount.getJid().toBareJid().toString());
+			}
 			this.mPassword.setText(this.mAccount.getPassword());
 		}
 		if (this.jidToEdit != null) {
@@ -540,10 +577,10 @@ public class EditAccountActivity extends XmppActivity implements OnAccountUpdate
 							@Override
 							public void onClick(final View v) {
 
-								if (copyTextToClipboard(axolotlFingerprint, R.string.axolotl_fingerprint)) {
+								if (copyTextToClipboard(axolotlFingerprint, R.string.omemo_fingerprint)) {
 									Toast.makeText(
 											EditAccountActivity.this,
-											R.string.toast_message_axolotl_fingerprint,
+											R.string.toast_message_omemo_fingerprint,
 											Toast.LENGTH_SHORT).show();
 								}
 							}
@@ -571,7 +608,8 @@ public class EditAccountActivity extends XmppActivity implements OnAccountUpdate
 				if(ownKey.equals(identityKey)) {
 					continue;
 				}
-				hasKeys |= addFingerprintRow(keys, mAccount, identityKey);
+				boolean highlight = identityKey.getFingerprint().replaceAll("\\s", "").equals(messageFingerprint);
+				hasKeys |= addFingerprintRow(keys, mAccount, identityKey, highlight);
 			}
 			if (hasKeys) {
 				keysCard.setVisibility(View.VISIBLE);

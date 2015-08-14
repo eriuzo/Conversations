@@ -8,7 +8,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:padding="8dp" >
+        android:paddingTop="8dp"
+        android:paddingLeft="8dp"
+        android:paddingBottom="8dp">
 
         <TextView
             android:id="@+id/key"
@@ -28,6 +30,7 @@
             android:textColor="@color/black54"
             android:layout_alignParentLeft="true"
             android:layout_below="@+id/key"
+            android:maxLines="1"
             android:textSize="?attr/TextSizeInfo"/>
 
         <TextView
